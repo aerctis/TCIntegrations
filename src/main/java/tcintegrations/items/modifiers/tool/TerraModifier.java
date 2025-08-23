@@ -39,23 +39,17 @@ public class TerraModifier extends ManaModifier implements MeleeHitModifierHook 
 
     @Override
     public void afterMeleeHit(IToolStackView tool, ModifierEntry modifier, ToolAttackContext context, float damageDealt) {
-        // Ensure the attacker is a server-side player and the target is a living entity.
-        if (context.getAttacker() instanceof ServerPlayer player && context.getLivingTarget() != null) {
-            LivingEntity target = context.getLivingTarget();
-            ItemStack stack = player.getMainHandItem();
-            int manaCost = getManaPerDamage(player) * 2;
+        final Player player = context.getPlayerAttacker() != null ? context.getPlayerAttacker() : null;
+        LivingEntity target = context.getLivingTarget();
 
-            // Check if the attack is fully charged and if the player has enough mana.
-            if (player.getAttackStrengthScale(0F) == 1.0F && ManaItemHandler.instance().requestManaExactForTool(stack, player, manaCost, true)) {
-                DamageSource source = player.level().damageSources().magic();
+        if (player != null && !player.level().isClientSide && target != null) {
+            final ServerPlayer sp = (ServerPlayer) player;
+            ItemStack stack = sp.getItemInHand(InteractionHand.MAIN_HAND);
 
-                // Play the sound effect at the player's location.
-                player.level().playSound(null, player.getX(), player.getY(), player.getZ(), BotaniaSounds.terraBlade, SoundSource.PLAYERS, 1.0F, 1.0F);
-
-                // Directly apply 7.0F damage to the target using the vanilla hurt method.
-                target.hurt(source, 7.0F);
+            if (sp.getAttackStrengthScale(0F) == 1 && ManaItemHandler.instance().requestManaExactForTool(stack, sp, getManaPerDamage(sp) * 2, true)) {
+                sp.level().playSound(null, sp.getX(), sp.getY(), sp.getZ(), BotaniaSounds.terraBlade, SoundSource.PLAYERS, 1F, 1F);
+                target.hurt(DamageSource.MAGIC, 7.0F);
             }
         }
     }
-
 }
