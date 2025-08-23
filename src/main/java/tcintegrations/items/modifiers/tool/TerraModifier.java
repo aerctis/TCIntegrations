@@ -38,16 +38,21 @@ public class TerraModifier extends ManaModifier implements MeleeHitModifierHook 
 
     @Override
     public void afterMeleeHit(IToolStackView tool, ModifierEntry modifier, ToolAttackContext context, float damageDealt) {
-        final Player player = context.getPlayerAttacker() != null ? context.getPlayerAttacker() : null;
+        // Ensure the attacker is a server-side player and the target is a living entity.
+        if (context.getAttacker() instanceof ServerPlayer player && context.getLivingTarget() != null) {
+            LivingEntity target = context.getLivingTarget();
+            ItemStack stack = player.getMainHandItem();
+            int manaCost = getManaPerDamage(player) * 2;
 
-        if (player != null && !player.level().isClientSide) {
-            final ServerPlayer sp = (ServerPlayer) player;
-            DamageSource source = sp.level().damageSources().indirectMagic(sp, null);
-            ItemStack stack = sp.getItemInHand(InteractionHand.MAIN_HAND);
+            // Check if the attack is fully charged and if the player has enough mana.
+            if (player.getAttackStrengthScale(0F) == 1.0F && ManaItemHandler.instance().requestManaExactForTool(stack, player, manaCost, true)) {
+                DamageSource source = player.level().damageSources().magic(player, player).bypassArmor();
 
-            if (sp.getAttackStrengthScale(0F) == 1 && ManaItemHandler.instance().requestManaExactForTool(stack, sp, getManaPerDamage(sp) * 2, true)) {
-                sp.level().playSound(null, sp.getX(), sp.getY(), sp.getZ(), BotaniaSounds.terraBlade, SoundSource.PLAYERS, 1F, 1F);
-                ToolAttackUtil.attackEntitySecondary(source, 7.0F, context.getTarget(), context.getLivingTarget(), true);
+                // Play the sound effect at the player's location.
+                player.level().playSound(null, player.getX(), player.getY(), player.getZ(), BotaniaSounds.terraBlade, SoundSource.PLAYERS, 1.0F, 1.0F);
+
+                // Directly apply 7.0F damage to the target using the vanilla hurt method.
+                target.hurt(source, 7.0F);
             }
         }
     }
