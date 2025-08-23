@@ -46,7 +46,7 @@ public class TerraModifier extends ManaModifier implements MeleeHitModifierHook 
             final ServerPlayer sp = (ServerPlayer) player;
             ItemStack stack = sp.getItemInHand(InteractionHand.MAIN_HAND);
 
-            if (sp.getAttackStrengthScale(0F) == 1 && ManaItemHandler.instance().requestManaExactForTool(stack, sp, getManaPerDamage(sp) * 2, true)) {
+            if (sp.getAttackStrengthScale(0F) >= 0.98F && ManaItemHandler.instance().requestManaExactForTool(stack, sp, getManaPerDamage(sp) * 2, true)) {
                 sp.level().playSound(null, sp.getX(), sp.getY(), sp.getZ(), BotaniaSounds.terraBlade, SoundSource.PLAYERS, 1F, 1F);
                 target.hurt(DamageSource.MAGIC, 7.0F);
             }
