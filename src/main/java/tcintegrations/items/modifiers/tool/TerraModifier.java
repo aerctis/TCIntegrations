@@ -6,6 +6,7 @@ import net.minecraft.world.InteractionHand;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.entity.LivingEntity;
 
 import slimeknights.tconstruct.library.modifiers.ModifierEntry;
 import slimeknights.tconstruct.library.modifiers.ModifierHooks;
@@ -46,7 +47,8 @@ public class TerraModifier extends ManaModifier implements MeleeHitModifierHook 
 
             // Check if the attack is fully charged and if the player has enough mana.
             if (player.getAttackStrengthScale(0F) == 1.0F && ManaItemHandler.instance().requestManaExactForTool(stack, player, manaCost, true)) {
-                DamageSource source = player.level().damageSources().magic(player, player).bypassArmor();
+                DamageSource source = player.level().damageSources().magic();
+                source = source.bypassArmor();
 
                 // Play the sound effect at the player's location.
                 player.level().playSound(null, player.getX(), player.getY(), player.getZ(), BotaniaSounds.terraBlade, SoundSource.PLAYERS, 1.0F, 1.0F);
