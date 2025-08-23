@@ -47,8 +47,7 @@ public class TerraModifier extends ManaModifier implements MeleeHitModifierHook 
 
             // Check if the attack is fully charged and if the player has enough mana.
             if (player.getAttackStrengthScale(0F) == 1.0F && ManaItemHandler.instance().requestManaExactForTool(stack, player, manaCost, true)) {
-                DamageSource source = player.level().damageSources().magic();
-                source = source.bypassArmor();
+                DamageSource source = player.level().damageSources().magic().bypassArmor();
 
                 // Play the sound effect at the player's location.
                 player.level().playSound(null, player.getX(), player.getY(), player.getZ(), BotaniaSounds.terraBlade, SoundSource.PLAYERS, 1.0F, 1.0F);
