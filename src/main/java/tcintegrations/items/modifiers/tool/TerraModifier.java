@@ -37,19 +37,27 @@ public class TerraModifier extends ManaModifier implements MeleeHitModifierHook 
         return BotaniaHelper.getManaPerDamageBonus(sp, MANA_PER_DAMAGE);
     }
 
+    //Deals true damage on full swing
     @Override
     public void afterMeleeHit(IToolStackView tool, ModifierEntry modifier, ToolAttackContext context, float damageDealt) {
-        final Player player = context.getPlayerAttacker() != null ? context.getPlayerAttacker() : null;
-        LivingEntity target = context.getLivingTarget();
+    final Player player = context.getPlayerAttacker();
+    LivingEntity target = context.getLivingTarget();
 
-        if (player != null && !player.level().isClientSide && target != null) {
-            final ServerPlayer sp = (ServerPlayer) player;
-            ItemStack stack = sp.getItemInHand(InteractionHand.MAIN_HAND);
+    if (player != null && !player.level().isClientSide && target != null) {
+        final ServerPlayer sp = (ServerPlayer) player;
+        ItemStack stack = sp.getItemInHand(InteractionHand.MAIN_HAND);
 
-            if (sp.getAttackStrengthScale(0F) >= 0.98F && ManaItemHandler.instance().requestManaExactForTool(stack, sp, getManaPerDamage(sp) * 2, true)) {
-                sp.level().playSound(null, sp.getX(), sp.getY(), sp.getZ(), BotaniaSounds.terraBlade, SoundSource.PLAYERS, 1F, 1F);
-                target.hurt(DamageSource.MAGIC, 7.0F);
-            }
+        if (sp.getAttackStrengthScale(0F) == 1 &&
+            ManaItemHandler.instance().requestManaExactForTool(stack, sp, getManaPerDamage(sp) * 2, true)) {
+
+            sp.level().playSound(null, sp.getX(), sp.getY(), sp.getZ(),
+                                 BotaniaSounds.terraBlade, SoundSource.PLAYERS, 1F, 1F);
+
+            // Reset i-frames so this hit isn't ignored
+            target.invulnerableTime = 0;
+            DamageSource source = sp.level().damageSources().indirectMagic(sp, sp);
+            target.hurt(source, 7.0F);
         }
     }
+}
 }
